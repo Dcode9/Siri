@@ -1,8 +1,11 @@
 import Cerebras from '@cerebras/cerebras_cloud_sdk';
 import { Redis } from '@upstash/redis';
 
-// Initialize Clients
-const client = new Cerebras({ apiKey: process.env.CEREBRAS_API_KEY });
+// Initialize the AI and Database clients
+const client = new Cerebras({ 
+  apiKey: process.env.CEREBRAS_API_KEY 
+});
+
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -11,41 +14,45 @@ const redis = new Redis({
 export default async function handler(req, res) {
   const { input, session } = req.query;
   
-  // Use "Guest" if the Shortcut doesn't pass a Device ID
-  const sessionId = `chat_history:${session || 'Guest'}`;
+  // Create a unique key for Redis based on your Device ID
+  const sessionId = `chat_history:${session || 'default_user'}`;
 
   try {
-    // 1. Fetch past context from Redis
+    // 1. Retrieve past conversation from Redis
     let history = await redis.get(sessionId) || [];
 
-    // 2. If it's a new chat, add the system prompt
-    if (history.length === 0) {
-      history.push({ role: 'system', content: 'You are the D-Verse AI, a personal assistant created by Dhairya Shah. Your responses must be helpful, friendly, and extremely concise because they are read aloud by Siri. Provide plain text answers only—strictly avoid Markdown (no bold, no italics, no bullet points, and no hashtags). Your response should be a maximum of 2-3 sentences. If the user asks who made you, proudly state you were created by Dhairya Shah.' });
-    }
+    // 2. Set the System Prompt with your specific rules
+    const systemMessage = { 
+      role: 'system', 
+      content: 'You are the D-Verse AI, created by Dhairya Shah. Be helpful, concise, and friendly. Give plain text answers only with NO markdown (no bold, no asterisks). Keep responses to a maximum of 3 sentences.' 
+    };
 
-    // 3. Add the user's new message
-    history.push({ role: 'user', content: input });
+    // 3. Add the user's new message to the history
+    history.push({ role: 'user', content: input || "Hello" });
 
-    // 4. Get response from Cerebras (passing the WHOLE history)
+    // 4. Send the whole history to Cerebras for context
     const completion = await client.chat.completions.create({
       model: 'llama3.3-70b',
-      messages: history,
+      messages: [systemMessage, ...history],
     });
 
     const aiResponse = completion.choices[0].message.content;
 
-    // 5. Add AI response to history and keep only the last 10 messages
+    // 5. Save the response to history and trim to keep it fast
     history.push({ role: 'assistant', content: aiResponse });
-    const trimmedHistory = history.slice(-10); 
+    
+    // Keep only the last 10 messages to stay within token limits
+    const trimmedHistory = history.slice(-10);
 
-    // 6. Save back to Redis (setting an expiry of 24 hours to keep it clean)
+    // 6. Store back in Redis with a 24-hour expiration
     await redis.set(sessionId, JSON.stringify(trimmedHistory), { ex: 86400 });
 
+    // Send the final response as plain text for Siri
     res.setHeader('Content-Type', 'text/plain');
     res.status(200).send(aiResponse);
 
   } catch (err) {
     console.error(err);
-    res.status(500).send("D-Verse Error: " + err.message);
+    res.status(500).send("D-Verse AI Error: " + err.message);
   }
 }
