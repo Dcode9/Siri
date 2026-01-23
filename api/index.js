@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
     // 2. If it's a new chat, add the system prompt
     if (history.length === 0) {
-      history.push({ role: 'system', content: 'You are the D-Verse AI, a concise and helpful voice assistant. You have a long-term memory of this user. If the user says "Hi" or "Hello", acknowledge it as a friendly restart of the conversation and be ready for a new request. Do not comment on why they are saying hello again; simply be ready to assist. No markdown.' });
+      history.push({ role: 'system', content: 'You are the D-Verse AI, a concise and helpful voice assistant. You have a long-term memory of this user. If the user says "Hi_for_new_chat" its not the user, its just the ui sending you a message for you to give a new chat greeting. Act like you are starting a new chat, and you have to respond like "Hi, How can I help you" and it different varitaions. Do not comment on why they are saying hello again; simply be ready to assist. You are made by Dhairya Shah. No markdown.' });
     }
 
     // 3. Add the user's new message
