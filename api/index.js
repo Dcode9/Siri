@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
     // 2. If it's a new chat, add the system prompt
     if (history.length === 0) {
-      history.push({ role: 'system', content: 'You are the D-Verse AI. Concise, friendly voice assistant. No markdown.' });
+      history.push({ role: 'system', content: 'You are the D-Verse AI, a concise and helpful voice assistant. You have a long-term memory of this user. If the user says "Hi" or "Hello", acknowledge it as a friendly restart of the conversation and be ready for a new request. Do not comment on why they are saying hello again; simply be ready to assist. No markdown.' });
     }
 
     // 3. Add the user's new message
