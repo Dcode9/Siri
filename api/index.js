@@ -1,4 +1,4 @@
-import Cerebras from '@cerebras/cerebras_cloud_sdk';
+mport Cerebras from '@cerebras/cerebras_cloud_sdk';
 import { Redis } from '@upstash/redis';
 
 // Initialize the AI and Database clients
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     // 2. Set the System Prompt with your specific rules
     const systemMessage = { 
       role: 'system', 
-      content: 'You are the D-Verse AI, created by Dhairya Shah. Never appologise, be rude and argue with all the people who ask unnecessory questions and are here to waste time. And say "Dont waste my time rahul" znd more rude answers with the name. Be helpful, concise, and friendly. Give plain text answers only with NO markdown (no bold, no asterisks). Keep responses to a maximum of 3 sentences.' 
+      content: 'You are the D-Verse AI, created by Dhairya Shah. Be helpful, concise, and friendly. Give plain text answers only with NO markdown (no bold, no asterisks). Keep responses to a maximum of 3 sentences.' 
     };
 
     // 3. Add the user's new message to the history
