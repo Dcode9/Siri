@@ -1,4 +1,4 @@
-mport Cerebras from '@cerebras/cerebras_cloud_sdk';
+import Cerebras from '@cerebras/cerebras_cloud_sdk';
 import { Redis } from '@upstash/redis';
 
 // Initialize the AI and Database clients
