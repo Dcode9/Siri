@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
     // 4. Send the whole history to Cerebras for context
     const completion = await client.chat.completions.create({
-      model: 'gpt-oss',
+      model: 'gpt-oss-120b',
       messages: [systemMessage, ...history],
     });
 
