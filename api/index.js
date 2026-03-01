@@ -13,6 +13,7 @@ const redis = new Redis({
 
 const IMAGE_PROMPT_PREFIX = 'IMAGE_PROMPT:';
 const POLLINATIONS_IMAGE_URL = 'https://image.pollinations.ai/prompt';
+const POLLINATIONS_IMAGE_MODEL = 'zimage';
 
 export default async function handler(req, res) {
   const { input, session } = req.query;
@@ -40,11 +41,14 @@ export default async function handler(req, res) {
     });
 
     const aiResponse = completion.choices[0].message.content;
-    const isImagePrompt = aiResponse?.startsWith(IMAGE_PROMPT_PREFIX);
+    const isImagePrompt = aiResponse ? aiResponse.startsWith(IMAGE_PROMPT_PREFIX) : false;
     const imagePrompt = isImagePrompt ? aiResponse.slice(IMAGE_PROMPT_PREFIX.length).trim() : '';
 
     // 5. Save the response to history and trim to keep it fast
-    history.push({ role: 'assistant', content: aiResponse });
+    history.push({
+      role: 'assistant',
+      content: isImagePrompt && imagePrompt ? `Generated image prompt: ${imagePrompt}` : (aiResponse || '')
+    });
     
     // Keep only the last 10 messages to stay within token limits
     const trimmedHistory = history.slice(-10);
@@ -53,9 +57,10 @@ export default async function handler(req, res) {
     await redis.set(sessionId, JSON.stringify(trimmedHistory), { ex: 86400 });
 
     if (isImagePrompt && imagePrompt) {
-      const imageUrl = `${POLLINATIONS_IMAGE_URL}/${encodeURIComponent(imagePrompt)}?model=zimage`;
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.status(200).send(`<img src="${imageUrl}" alt="Generated image" style="display:block;max-width:100%;height:auto;" />`);
+      const imageUrl = `${POLLINATIONS_IMAGE_URL}/${encodeURIComponent(imagePrompt)}?model=${POLLINATIONS_IMAGE_MODEL}`;
+      res.status(302);
+      res.setHeader('Location', imageUrl);
+      res.end();
       return;
     }
 
