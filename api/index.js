@@ -12,7 +12,7 @@ const redis = new Redis({
 });
 
 const IMAGE_PROMPT_PREFIX = 'IMAGE_PROMPT:';
-const POLLINATIONS_IMAGE_URL = 'https://image.pollinations.ai/prompt';
+const POLLINATIONS_IMAGE_URL = 'https://gen.pollinations.ai/image';
 
 export default async function handler(req, res) {
   const { input, session } = req.query;
