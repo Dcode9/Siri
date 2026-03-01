@@ -12,8 +12,7 @@ const redis = new Redis({
 });
 
 const IMAGE_PROMPT_PREFIX = 'IMAGE_PROMPT:';
-const POLLINATIONS_IMAGE_URL = 'https://image.pollinations.ai/prompt';
-const POLLINATIONS_IMAGE_MODEL = 'zimage';
+const POLLINATIONS_IMAGE_URL = 'https://gen.pollinations.ai/image';
 
 export default async function handler(req, res) {
   const { input, session } = req.query;
@@ -57,7 +56,7 @@ export default async function handler(req, res) {
     await redis.set(sessionId, JSON.stringify(trimmedHistory), { ex: 86400 });
 
     if (isImagePrompt && imagePrompt) {
-      const imageUrl = `${POLLINATIONS_IMAGE_URL}/${encodeURIComponent(imagePrompt)}?model=${POLLINATIONS_IMAGE_MODEL}`;
+      const imageUrl = `${POLLINATIONS_IMAGE_URL}/${encodeURIComponent(imagePrompt)}`;
       res.status(302);
       res.setHeader('Location', imageUrl);
       res.end();
